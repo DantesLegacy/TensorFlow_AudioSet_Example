@@ -8,9 +8,14 @@ rownum = 0
 path = 'AudioSet/balanced_train/'
 project_path = '/home/joseph/PycharmProjects/project/src/'
 
+# specify the index of files that is downloaded last time (to resume downloading)
+# Basically this is a simple work around for this downloader, where I sometimes accidentally close the program or sometimes it just hangs in my environment
+last_processed_row = 0
+
+
 def youtube_download_os_call(id, start_time, idx):
-    ret = os.system('ffmpeg -ss ' + start_time +
-              ' -i $(youtube-dl --extract-audio '
+    ret = os.system('ffmpeg -n -ss ' + start_time +
+              ' -i $(youtube-dl -i -w --extract-audio '
               '--audio-format wav --audio-quality 0 '
               '--get-url https://www.youtube.com/watch?v=' + id + ')'
               ' -t 10 ' + path + idx + '_' + id + '.wav')
@@ -34,8 +39,8 @@ def create_error_file(id, idx):
 def youtube_downloader(id, start_time, idx):
     ret = youtube_download_os_call(id, start_time, idx)
 
-    print('ffmpeg -ss ' + start_time +
-              ' -i $(youtube-dl --extract-audio '
+    print('ffmpeg -n -ss ' + start_time +
+              ' -i $(youtube-dl -i -w --extract-audio '
               '--audio-format wav --audio-quality 0 '
               '--get-url https://www.youtube.com/watch?v=' + id + ')'
               ' -t 10 AudioSet/balanced_train/' + idx + '_' + id + '.wav')
@@ -45,6 +50,9 @@ with open(filename, newline='') as f:
     reader = csv.reader(f)
     try:
         for row in reader:
+            if rownum <= last_processed_row:
+              rownum += 1
+              continue
             # Skip the 3 line header
             if rownum >= 3:
                 print(row)
